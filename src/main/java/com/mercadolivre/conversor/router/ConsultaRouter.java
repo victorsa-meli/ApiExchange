@@ -1,6 +1,5 @@
 package com.mercadolivre.conversor.router;
 
-import com.mercadolivre.conversor.core.dto.BidDto;
 import com.mercadolivre.conversor.core.dto.ResponseExchangeApiDto;
 import com.mercadolivre.conversor.core.entity.Consulta;
 import com.mercadolivre.conversor.core.repository.ConsultasRepository;
@@ -9,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-
 import java.util.List;
 
 @RestController
@@ -38,12 +36,16 @@ public class ConsultaRouter {
                                                    @RequestParam Double valor) {
 
         RestTemplate restTemplate = new RestTemplate();
-        String url = URL_BASE + from + "-"+to;
+        String url = URL_BASE + from + "-"+to+","+to+"-"+from;
         ResponseExchangeApiDto respondeApi = restTemplate.getForObject(url, ResponseExchangeApiDto.class);
-
-        if (respondeApi != null && respondeApi.getUsdBrl().getBid()!= null) {
-
-            double valorConvertido = Double.parseDouble(respondeApi.getUsdBrl().getBid()) * valor;
+        if (respondeApi != null && respondeApi.getUsdBrl().getBid() != null) {
+            double valorConvertido = 0;
+            if(from.equals("USD") && to.equals("BRL")) {
+                valorConvertido = Double.parseDouble(respondeApi.getUsdBrl().getBid()) * valor;
+            }
+            if(from.equals("BRL") && to.equals("USD")) {
+                valorConvertido = Double.parseDouble(respondeApi.getBrlUsd().getBid()) * valor;
+            }
 
             Consulta consulta = Consulta.builder()
                     .moedaOrigem(from)
@@ -54,9 +56,9 @@ public class ConsultaRouter {
 
             consultasRepository.save(consulta);
 
-            return new ResponseEntity<>("Endereço salvo com sucesso.", HttpStatus.OK);
+            return new ResponseEntity<>("Consulta salva! ", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("Nao foi possivel identificar a transacao.", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Erro ao realizar a consulta, verifique os dados!", HttpStatus.NOT_FOUND);
         }
     }
 

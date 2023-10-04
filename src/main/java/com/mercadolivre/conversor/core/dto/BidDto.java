@@ -10,7 +10,6 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BidDto {
 
-    //@SerializedName("bid")
     @JsonProperty("bid")
     private String bid;
 
