@@ -56,7 +56,7 @@ public class ConsultaRouter {
 
             consultasRepository.save(consulta);
 
-            return new ResponseEntity<>("Consulta salva! ", HttpStatus.OK);
+            return new ResponseEntity<>("Consulta salva ! ", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Erro ao realizar a consulta, verifique os dados!", HttpStatus.NOT_FOUND);
         }
