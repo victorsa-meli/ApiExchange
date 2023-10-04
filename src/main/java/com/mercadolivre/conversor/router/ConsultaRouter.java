@@ -3,6 +3,7 @@ package com.mercadolivre.conversor.router;
 import com.mercadolivre.conversor.core.dto.ResponseExchangeApiDto;
 import com.mercadolivre.conversor.core.entity.Consulta;
 import com.mercadolivre.conversor.core.repository.ConsultasRepository;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,10 +31,11 @@ public class ConsultaRouter {
         }
     }
 
+    @SneakyThrows
     @PostMapping("/{from}/{to}")
-    public ResponseEntity<String> realizarConsulta(@PathVariable String from,
-                                                   @PathVariable String to,
-                                                   @RequestParam Double valor) {
+    public ResponseEntity<Consulta> realizarConsulta(@PathVariable String from,
+                                                     @PathVariable String to,
+                                                     @RequestParam Double valor) {
 
         RestTemplate restTemplate = new RestTemplate();
         String url = URL_BASE + from + "-"+to+","+to+"-"+from;
@@ -56,9 +58,9 @@ public class ConsultaRouter {
 
             consultasRepository.save(consulta);
 
-            return new ResponseEntity<>("Consulta salva ! ", HttpStatus.OK);
+            return new ResponseEntity<Consulta>(consulta, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("Erro ao realizar a consulta, verifique os dados!", HttpStatus.NOT_FOUND);
+            throw new Exception("Não foi possível realizar a consulta");
         }
     }
 
