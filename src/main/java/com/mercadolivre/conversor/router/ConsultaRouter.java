@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/consulta")
@@ -55,6 +56,14 @@ public class ConsultaRouter {
                     .valorOriginal(valor)
                     .valorConvertido(valorConvertido)
                     .build();
+
+            Optional<Consulta> consultaExistente = consultasRepository.findByValorOriginal(valor);
+
+            if(consultaExistente.isPresent()){
+
+                return new ResponseEntity<Consulta>(consultaExistente.get(), HttpStatus.FOUND);
+
+            }
 
             consultasRepository.save(consulta);
 
