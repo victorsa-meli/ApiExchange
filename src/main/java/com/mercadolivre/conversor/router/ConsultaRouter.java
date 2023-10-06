@@ -1,34 +1,31 @@
 package com.mercadolivre.conversor.router;
 
-import com.mercadolivre.conversor.core.dto.ResponseExchangeApiDto;
 import com.mercadolivre.conversor.core.entity.Consulta;
-import com.mercadolivre.conversor.core.repository.ConsultasRepository;
+import com.mercadolivre.conversor.core.usecase.impl.ConsultasUseCaseImpl;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
+
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/consulta")
 public class ConsultaRouter {
 
-    private static final String URL_BASE = "https://economia.awesomeapi.com.br/json/last/";
-
-
     @Autowired
-    private ConsultasRepository consultasRepository;
+    ConsultasUseCaseImpl consultasUseCase;
+
 
     @GetMapping("/all")
-    public ResponseEntity<List<Consulta>> getAllConsultas()  {
-        List<Consulta> consultas = consultasRepository.findAll();
-        if(consultas.isEmpty())    {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }else {
-            return new ResponseEntity<>(consultas, HttpStatus.OK);
+    public ResponseEntity<List<Consulta>> getAllConsultas() {
+
+        List<Consulta> response = consultasUseCase.getAllConsultas();
+        if (response.isEmpty()) {
+            return new ResponseEntity<List<Consulta>>(HttpStatus.NOT_FOUND);
+        } else {
+            return new ResponseEntity<List<Consulta>>(response, HttpStatus.OK);
         }
     }
 
@@ -37,43 +34,14 @@ public class ConsultaRouter {
     public ResponseEntity<Consulta> realizarConsulta(@PathVariable String from,
                                                      @PathVariable String to,
                                                      @RequestParam Double valor) {
+        Consulta response = consultasUseCase.createExchangeTransaction(from, to, valor);
+try {
+    return new ResponseEntity<Consulta>(response, HttpStatus.OK);
+}catch (Exception e){
+    return new ResponseEntity<Consulta>(HttpStatus.BAD_REQUEST);
+}
 
-        RestTemplate restTemplate = new RestTemplate();
-        String url = URL_BASE + from + "-"+to+","+to+"-"+from;
-        ResponseExchangeApiDto respondeApi = restTemplate.getForObject(url, ResponseExchangeApiDto.class);
-        if (respondeApi != null && respondeApi.getUsdBrl().getBid() != null) {
-            double valorConvertido = 0;
-            if(from.equals("USD") && to.equals("BRL")) {
-                valorConvertido = Double.parseDouble(respondeApi.getUsdBrl().getBid()) * valor;
-            }
-            if(from.equals("BRL") && to.equals("USD")) {
-                valorConvertido = Double.parseDouble(respondeApi.getBrlUsd().getBid()) * valor;
-            }
-
-            Consulta consulta = Consulta.builder()
-                    .moedaOrigem(from)
-                    .moedaDestino(to)
-                    .valorOriginal(valor)
-                    .valorConvertido(valorConvertido)
-                    .build();
-
-            Optional<Consulta> consultaExistente = consultasRepository.findByValorOriginal(valor);
-
-            if(consultaExistente.isPresent()){
-
-                return new ResponseEntity<Consulta>(consultaExistente.get(), HttpStatus.FOUND);
-
-            }
-
-            consultasRepository.save(consulta);
-
-            return new ResponseEntity<Consulta>(consulta, HttpStatus.OK);
-        } else {
-            throw new Exception("Não foi possível realizar a consulta");
-        }
     }
-
-
 
 
 }
