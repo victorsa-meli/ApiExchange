@@ -12,4 +12,6 @@ public interface ConsultasRepository extends JpaRepository<Consulta, Long> {
 
     Optional<Consulta> findByValorOriginal (Double valorOriginal);
 
+    Optional<Consulta> findByMoedaOrigemAndMoedaDestinoAndValorOriginal (String moedaOrigem, String moedaDestino,Double valorOriginal);
+
 }

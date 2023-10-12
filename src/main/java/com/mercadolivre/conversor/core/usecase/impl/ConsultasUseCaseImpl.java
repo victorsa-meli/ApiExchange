@@ -37,7 +37,7 @@ public class ConsultasUseCaseImpl implements ConsultasUseCase {
                 .valorConvertido(valorConvertido)
                 .build();
 
-        if(!checkExistTransaction(valor)) {
+        if(!checkExistTransaction(valor, from , to)){
             consultasRepository.save(consulta);
         }
 
@@ -105,8 +105,8 @@ public class ConsultasUseCaseImpl implements ConsultasUseCase {
         throw new RuntimeException("Moeda informada nao existente.");
     }
 
-    private boolean checkExistTransaction(Double valor) {
-        Optional<Consulta> consultaExistente = consultasRepository.findByValorOriginal(valor);
+    private boolean checkExistTransaction(Double valor, String from, String to) {
+        Optional<Consulta> consultaExistente = consultasRepository.findByMoedaOrigemAndMoedaDestinoAndValorOriginal(from, to, valor);
         if (consultaExistente.isPresent()) {
             return true;
         }
